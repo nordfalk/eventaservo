@@ -110,6 +110,9 @@ en:
     past_events_count:
       one: "%{count} past event"
       other: "%{count} past events"
+    by_city:
+      nearby_events_title: "Nearby events within 50 km"
+      nearby_events_subtitle: "from neighboring cities"
   navbar:
     add_event: Add event
     log_in_sign_up: Login / Signup

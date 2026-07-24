@@ -58,4 +58,40 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_includes CGI.unescape(response.location), "new york"
   end
+
+  test "assigns nearby_events for city view" do
+    # Stub Geocoder por fari la teston prediktebla
+    Geocoder.stub :search, ->(query, **_opts) {
+      [OpenStruct.new(latitude: 34.0522, longitude: -118.2437)] # Los Angeles coordinates
+    } do
+      country = countries(:us)
+      
+      # Get the page with nearby events
+      get events_by_city_url(continent: country.continent.normalized,
+        country_name: country.name.normalized,
+        city_name: "los angeles"),
+        headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
+
+      assert_response :success
+      # Check that @nearby_events is assigned (we can't directly test the instance variable,
+      # but we can check that the view renders without error)
+      assert_match /Proksimaj eventoj|Nearby events/, response.body
+    end
+  end
+
+  test "handles missing nearby events gracefully" do
+    # Stub Geocoder por doni nenion
+    Geocoder.stub :search, ->(_query, **_opts) { [] } do
+      country = countries(:us)
+      
+      get events_by_city_url(continent: country.continent.normalized,
+        country_name: country.name.normalized,
+        city_name: "los angeles"),
+        headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
+
+      assert_response :success
+      # Should still render the page even without nearby events
+      assert_no_match /Proksimaj eventoj|Nearby events/, response.body
+    end
+  end
 end

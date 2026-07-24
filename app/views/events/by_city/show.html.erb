@@ -13,6 +13,20 @@
     <%= render partial: 'home/filters' %>
     <%= render partial: 'events/okazantaj' %>
     <%= display_events_by_style %>
+
+    <%# Sekcio por proksimaj eventoj de najbaraj urboj %>
+    <% if defined?(@nearby_events) && @nearby_events.any? %>
+      <div class="mt-4 pt-3 border-top">
+        <h3 class="h5 mb-3">
+          <%= t('.nearby_events_title', default: 'Proksimaj eventoj en 50 km radio') %>
+          <span class="text-muted small">
+            (<%= t('.nearby_events_subtitle', default: 'de najbaraj urboj') %>)
+          </span>
+        </h3>
+        <%= render partial: 'events/events_as_cards', locals: {events: @nearby_events} %>
+      </div>
+    <% end %>
+
     <%= render partial: "events/past_events_toggle", locals: {
       past_url: events_by_city_path(continent: params[:continent], country_name: params[:country_name], city_name: params[:city_name], pasintaj: 1)
     } %>

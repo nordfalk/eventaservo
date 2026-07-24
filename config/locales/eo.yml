@@ -110,6 +110,9 @@ eo:
     past_events_count:
       one: "%{count} pasinta evento"
       other: "%{count} pasintaj eventoj"
+    by_city:
+      nearby_events_title: "Proksimaj eventoj en 50 km radio"
+      nearby_events_subtitle: "de najbaraj urboj"
   navbar:
     add_event: Aldoni eventon
     log_in_sign_up: Ensaluti / Registriĝi

@@ -180,6 +180,33 @@ class Event < ApplicationRecord # rubocop:disable Metrics/ClassLength
     where.not(id: joins(:tags).where(tags: {name: tag_name}).select(:id))
   }
 
+  # Trovas eventojn en radio de X km ĉirkaŭ urbo (ekskluzivante la urbon mem)
+  # Uzas Geocoder por geokodigi la urbon kaj serĉi proksimajn eventojn
+  #
+  # @param city_name [String] la nomo de la urbo
+  # @param country_code [String, nil] la landkodo por precizeco (ekz. "FR", "US")
+  # @param radius [Integer] la radio en kilometroj (defaŭlte 50)
+  # @return [ActiveRecord::Relation] eventoj en la radio, ekskluzivante la originan urbon
+  scope :near_city, ->(city_name, country_code = nil, radius = 50) {
+    return none if city_name.blank?
+
+    # Kreu kaŝiĝitan Ŝlosilon kun lando por precizeco
+    cache_key = country_code ? "geocode:#{city_name.downcase}:#{country_code.upcase}" : "geocode:#{city_name.downcase}"
+    
+    city_data = Rails.cache.fetch(cache_key, expires_in: 1.month) do
+      query = country_code ? "#{city_name}, #{country_code}" : city_name
+      Geocoder.search(query, lookup: :nominatim).first
+    end
+
+    return none if city_data.blank?
+
+    # Serĉu eventojn en la radio, ekskluzivante la originan urbon kaj retajn eventojn
+    near([city_data.latitude, city_data.longitude], radius, units: :km)
+      .where.not("lower(unaccent(events.city)) = lower(unaccent(?))", city_name)
+      .where.not(latitude: nil, longitude: nil)
+      .where(online: false)
+  }
+
   def self.by_code(code)
     find_by(code: code)
   end

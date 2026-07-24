@@ -22,7 +22,12 @@ module EventsHelper
         events_by_day: @events_by_day
       }
     when "mapo"
-      render partial: "events/events_as_map", locals: {events: @today_events.order(:date_start) + @events.order(:date_start)}
+      # Inkludu proksimajn eventojn en la mapo
+      map_events = @today_events.order(:date_start) + @events.order(:date_start)
+      if defined?(@nearby_events) && @nearby_events.any?
+        map_events += @nearby_events.order(:date_start)
+      end
+      render partial: "events/events_as_map", locals: {events: map_events}
     else
       render partial: "events/events_as_cards", locals: {events: @events}
     end
