@@ -10,7 +10,7 @@
     | 
     <%= link_to(
       (show_nearby ? t("events.hide_nearby") : t("events.show_nearby")),
-      url_for(params.merge(proksimaj: show_nearby ? 0 : 1, pasintaj: nil))
+      url_for(params.merge(proksimaj: show_nearby ? 0 : 1))
     ) %>
   <% end %>
 </div>
