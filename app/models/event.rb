@@ -238,31 +238,29 @@ class Event < ApplicationRecord # rubocop:disable Metrics/ClassLength
   # @return [Array<String>] list of nearby city names (excluding the reference city)
   def self.nearby_city_names(city_name:, country_id:, radius: 50)
     # Get a reference event from current city with coordinates
-    current_ref = where(city: city_name, country_id: country_id)
+    # Use normalized comparison to match city names with different cases/accents
+    current_ref = where("lower(unaccent(events.city)) = ?", city_name.normalized)
+                   .where(country_id: country_id)
                    .where.not(latitude: nil, longitude: nil)
                    .order(:created_at).first
 
     return [] if current_ref.nil?
 
     # Get distinct cities in same country with coordinates (excluding current city)
-    other_cities = where(country_id: country_id)
-                    .where.not(city: city_name)
-                    .where.not(latitude: nil, longitude: nil)
-                    .distinct
-                    .pluck(:city)
+    # Use the city name from the actual event (not normalized) for the result
+    other_city_events = where(country_id: country_id)
+                       .where.not("lower(unaccent(events.city)) = ?", city_name.normalized)
+                       .where.not(latitude: nil, longitude: nil)
+                       .distinct
+                       .order(:city)
 
     nearby_cities = []
-    other_cities.each do |other_city|
-      # Get a reference event from the other city
-      other_ref = where(city: other_city, country_id: country_id)
-                    .where.not(latitude: nil, longitude: nil)
-                    .order(:created_at).first
-      next if other_ref.nil?
-
+    other_city_events.each do |other_event|
+      other_city = other_event.city
       # Calculate distance between reference events
       distance = Geocoder::Calculations.distance_between(
         [current_ref.latitude, current_ref.longitude],
-        [other_ref.latitude, other_ref.longitude],
+        [other_event.latitude, other_event.longitude],
         units: :km
       )
 
