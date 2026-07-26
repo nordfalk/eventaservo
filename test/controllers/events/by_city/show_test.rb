@@ -64,7 +64,7 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     # Kopenhago has coordinates and should show Helsingør as nearby (within 50km)
     get events_by_city_url(continent: country.continent.normalized,
       country_name: country.name.normalized,
-      city_name: "Kopenhago"),
+      city_name: "kopenhago"),
       headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
 
     assert_response :success
@@ -81,7 +81,7 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     # With proksimaj=0, should not show nearby events
     get events_by_city_url(continent: country.continent.normalized,
       country_name: country.name.normalized,
-      city_name: "Kopenhago",
+      city_name: "kopenhago",
       proksimaj: 0),
       headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
 
@@ -98,7 +98,7 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     country = countries(:denmark)
     get events_by_city_url(continent: country.continent.normalized,
       country_name: country.name.normalized,
-      city_name: "Kopenhago"),
+      city_name: "kopenhago"),
       headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
 
     assert_response :success
@@ -112,7 +112,7 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     # When viewing Kopenhago past events with proksimaj=0, should not show Aarhus events
     get events_by_city_url(continent: country.continent.normalized,
       country_name: country.name.normalized,
-      city_name: "Kopenhago",
+      city_name: "kopenhago",
       pasintaj: 1,
       proksimaj: 0)
 
