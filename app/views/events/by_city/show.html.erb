@@ -6,7 +6,7 @@
   <%= render partial: 'layouts/breadcrumb' %>
 
   <% if @past_mode %>
-    <%= render partial: "events/events_as_cards_pasintaj", locals: {events: @events} %>
+    <%= render partial: "events/events_as_cards_pasintaj", locals: {events: @events, nearby_city_names: @nearby_city_names, current_city_name: @current_city_name} %>
   <% else %>
     <%= render partial: 'home/view_style_chooser', locals: { kartaro: true, kalendaro: false, mapo: true } %>
     <%#= render partial: 'events/events_count' %>
@@ -14,7 +14,8 @@
     <%= render partial: 'events/okazantaj' %>
     <%= display_events_by_style %>
     <%= render partial: "events/past_events_toggle", locals: {
-      past_url: events_by_city_path(continent: params[:continent], country_name: params[:country_name], city_name: params[:city_name], pasintaj: 1)
+      past_url: events_by_city_path(continent: params[:continent], country_name: params[:country_name], city_name: params[:city_name], pasintaj: 1),
+      show_nearby: @show_nearby
     } %>
   <% end %>
 </div>

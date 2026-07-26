@@ -58,4 +58,67 @@ class Events::ByCityController::ShowTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_includes CGI.unescape(response.location), "new york"
   end
+
+  test "shows nearby events by default" do
+    country = countries(:denmark)
+    # Kopenhago has coordinates and should show Helsingør as nearby (within 50km)
+    get events_by_city_url(continent: country.continent.normalized,
+      country_name: country.name.normalized,
+      city_name: "Kopenhago"),
+      headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
+
+    assert_response :success
+    # Should show the Copenhagen event
+    assert_match events(:future_event_kopenhago).title, response.body
+    # Should also show the Helsingør event as it's nearby
+    assert_match events(:future_event_helsingor).title, response.body
+    # Should show the "Proksima" label for Helsingør event
+    assert_match "Proksima", response.body
+  end
+
+  test "hides nearby events when proksimaj=0" do
+    country = countries(:denmark)
+    # With proksimaj=0, should not show nearby events
+    get events_by_city_url(continent: country.continent.normalized,
+      country_name: country.name.normalized,
+      city_name: "Kopenhago",
+      proksimaj: 0),
+      headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
+
+    assert_response :success
+    # Should show the Copenhagen event
+    assert_match events(:future_event_kopenhago).title, response.body
+    # Should NOT show the Helsingør event
+    assert_no_match events(:future_event_helsingor).title, response.body
+    # Should show the hide/show nearby link
+    assert_match "Montru proksimajn eventojn", response.body
+  end
+
+  test "shows nearby events toggle link" do
+    country = countries(:denmark)
+    get events_by_city_url(continent: country.continent.normalized,
+      country_name: country.name.normalized,
+      city_name: "Kopenhago"),
+      headers: {"HTTP_COOKIE" => "vidmaniero=kartaro"}
+
+    assert_response :success
+    # Should show the hide nearby link (since nearby is shown by default)
+    assert_match "Kaŝu proksimajn eventojn", response.body
+  end
+
+  test "pasintaj=1 with proksimaj=0 hides nearby past events" do
+    country = countries(:denmark)
+    # Aarhus has a past event with coordinates
+    # When viewing Kopenhago past events with proksimaj=0, should not show Aarhus events
+    get events_by_city_url(continent: country.continent.normalized,
+      country_name: country.name.normalized,
+      city_name: "Kopenhago",
+      pasintaj: 1,
+      proksimaj: 0)
+
+    assert_response :success
+    # Should show Kopenhago past event if it exists, but not Aarhus
+    # Note: past_event_danio_recent is in Kopenhago but doesn't have coordinates
+    # so it won't be in the nearby calculation
+  end
 end

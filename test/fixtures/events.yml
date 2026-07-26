@@ -89,4 +89,36 @@ past_event_danio_older:
   code: "aarhus6mago"
   site: "https://example.org/k2"
   email: "k2@example.org"
+  latitude: 56.1629
+  longitude: 10.2039
+  user: user
+
+# Future event in Helsingør, near Copenhagen (within 50km)
+future_event_helsingor:
+  title: "Helsingør Esperanto Kunveno"
+  description: "Evento en Helsingør proksima al Kopenhago"
+  city: "Helsingør"
+  country_id: 41
+  date_start: <%= 2.weeks.from_now %>
+  date_end: <%= 2.weeks.from_now + 2.days %>
+  code: "helsingor_future"
+  site: "https://example.org/helsingor"
+  email: "helsingor@example.org"
+  latitude: 56.0431
+  longitude: 12.6129
+  user: user
+
+# Future event in Kopenhagen with coordinates
+future_event_kopenhago:
+  title: "Kopenhaga Esperanta Renkontiĝo"
+  description: "Venonta evento en Kopenhago"
+  city: "Kopenhago"
+  country_id: 41
+  date_start: <%= 1.week.from_now %>
+  date_end: <%= 1.week.from_now + 1.day %>
+  code: "kopenhago_future"
+  site: "https://example.org/kopenhagen"
+  email: "kopenhagen@example.org"
+  latitude: 55.6761
+  longitude: 12.5683
   user: user

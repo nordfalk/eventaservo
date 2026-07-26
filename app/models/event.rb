@@ -217,7 +217,59 @@ class Event < ApplicationRecord # rubocop:disable Metrics/ClassLength
   end
 
   def self.by_city(city_name)
-    where("lower(unaccent(events.city)) in (?, ?)", city_name.normalized, city_name.downcase)
+    if city_name.is_a?(Array)
+      normalized = city_name.map { |c| [c.normalized, c.downcase] }.flatten.uniq
+      where("lower(unaccent(events.city)) in (?)", normalized)
+    else
+      where("lower(unaccent(events.city)) in (?, ?)", city_name.normalized, city_name.downcase)
+    end
+  end
+
+  # Finds city names within a given radius from a reference city.
+  #
+  # Uses an optimization: for each candidate city, uses one reference event
+  # with coordinates from the current city and one from the candidate city.
+  # If the distance between these reference events is <= radius, all events
+  # from the candidate city are considered nearby (all-or-nothing approach).
+  #
+  # @param city_name [String] the reference city name
+  # @param country_id [Integer] the country ID to filter by
+  # @param radius [Float] the radius in kilometers (default: 50)
+  # @return [Array<String>] list of nearby city names (excluding the reference city)
+  def self.nearby_city_names(city_name:, country_id:, radius: 50)
+    # Get a reference event from current city with coordinates
+    current_ref = where(city: city_name, country_id: country_id)
+                   .where.not(latitude: nil, longitude: nil)
+                   .order(:created_at).first
+
+    return [] if current_ref.nil?
+
+    # Get distinct cities in same country with coordinates (excluding current city)
+    other_cities = where(country_id: country_id)
+                    .where.not(city: city_name)
+                    .where.not(latitude: nil, longitude: nil)
+                    .distinct
+                    .pluck(:city)
+
+    nearby_cities = []
+    other_cities.each do |other_city|
+      # Get a reference event from the other city
+      other_ref = where(city: other_city, country_id: country_id)
+                    .where.not(latitude: nil, longitude: nil)
+                    .order(:created_at).first
+      next if other_ref.nil?
+
+      # Calculate distance between reference events
+      distance = Geocoder::Calculations.distance_between(
+        [current_ref.latitude, current_ref.longitude],
+        [other_ref.latitude, other_ref.longitude],
+        units: :km
+      )
+
+      nearby_cities << other_city if distance <= radius
+    end
+
+    nearby_cities
   end
 
   def self.grouped_by_countries

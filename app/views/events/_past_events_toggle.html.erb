@@ -1,5 +1,16 @@
 <%# Renders a discreet link to the past-events view of the same listing. %>
 <%# Locals: +past_url+ — the URL for the past view %>
+<%#       +show_nearby+ — boolean indicating if nearby events are shown %>
+<%#       +current_city_name+ — the current city name %>
+<%#       +country_name+ — the current country name %>
+<%#       +continent+ — the current continent %>
 <div class="text-center my-3">
   <%= link_to t("events.show_past"), past_url %>
+  <% if defined?(show_nearby) %>
+    | 
+    <%= link_to(
+      (show_nearby ? t("events.hide_nearby") : t("events.show_nearby")),
+      url_for(params.merge(proksimaj: show_nearby ? 0 : 1, pasintaj: nil))
+    ) %>
+  <% end %>
 </div>

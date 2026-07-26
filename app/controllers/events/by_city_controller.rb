@@ -25,10 +25,27 @@ class Events::ByCityController < ApplicationController
       redirect_to events_by_city_url(continent: params[:continent].normalized, country_name: params[:country_name].downcase, city_name: params[:city_name].downcase) and return
     end
 
+    @show_nearby = params[:proksimaj] != "0"
+    @nearby_city_names = []
+    @current_city_name = params[:city_name]
+
+    if @show_nearby && @country
+      @nearby_city_names = Event.nearby_city_names(
+        city_name: params[:city_name],
+        country_id: @country.id
+      )
+    end
+
+    city_filter = if @show_nearby && @nearby_city_names.any?
+      [params[:city_name]] + @nearby_city_names
+    else
+      params[:city_name]
+    end
+
     @events = build_events_scope
-    @future_events = Event.by_city(params[:city_name]).venontaj
-    @today_events = @events.today.includes(:country).by_city(params[:city_name])
-    @events = @events.not_today.by_city(params[:city_name])
+    @future_events = Event.by_city(city_filter).venontaj
+    @today_events = @events.today.includes(:country).by_city(city_filter)
+    @events = @events.not_today.by_city(city_filter)
 
     setup_card_pagination
   end
@@ -40,11 +57,28 @@ class Events::ByCityController < ApplicationController
   # @return [void]
   def render_pasintaj_by_city
     @past_mode = true
+    @show_nearby = params[:proksimaj] != "0"
+    @nearby_city_names = []
+    @current_city_name = params[:city_name]
+
+    if @show_nearby && @country
+      @nearby_city_names = Event.nearby_city_names(
+        city_name: params[:city_name],
+        country_id: @country.id
+      )
+    end
+
+    city_filter = if @show_nearby && @nearby_city_names.any?
+      [params[:city_name]] + @nearby_city_names
+    else
+      params[:city_name]
+    end
+
     @events = build_events_scope
     @future_events = Event.none
     @today_events = Event.none
     @pagy, @events = pagy(
-      @events.by_city(params[:city_name]).includes(:country).order(date_start: :desc)
+      @events.by_city(city_filter).includes(:country).order(date_start: :desc)
     )
   end
 end
