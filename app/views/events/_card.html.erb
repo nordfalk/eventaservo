@@ -8,7 +8,7 @@
       <% end %>
       <%= link_to titolo, event_path(code: event.ligilo), class: ("cancelled" if event.cancelled) %>
       <% if defined?(nearby_city_names) && nearby_city_names.is_a?(Array) && defined?(current_city_name) %>
-        <% if nearby_city_names.include?(event.city) && event.city != current_city_name %>
+        <% if nearby_city_names.include?(event.city) && event.city.normalized != current_city_name.normalized %>
           <span class="badge bg-info"><%= t("events.nearby_label") %></span>
         <% end %>
       <% end %>
